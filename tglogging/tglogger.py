@@ -1,9 +1,10 @@
+import asyncio
 import contextlib
 import io
 import time
-import asyncio
-import nest_asyncio
 from logging import StreamHandler
+
+import nest_asyncio
 from aiohttp import ClientSession
 
 nest_asyncio.apply()
@@ -49,6 +50,7 @@ class TelegramLogHandler(StreamHandler):
         self.lines = 0
         self.last_update = 0
         self.base_url = f"https://api.telegram.org/bot{token}"
+        self.http_session = ClientSession()
         DEFAULT_PAYLOAD.update({"chat_id": log_chat_id})
 
     def emit(self, record):
@@ -86,7 +88,6 @@ class TelegramLogHandler(StreamHandler):
             if not is_alive:
                 print("TGLogger: [ERROR] - Invalid bot token provided.")
             await self.initialise()  # Initializing by sending a message
-            await self.edit_message(f"Logging started by @{uname}")
         computed_message = self.current_msg + msg
         if len(computed_message) > 4050:
             _to_edit = computed_message[:4050]
@@ -103,10 +104,9 @@ class TelegramLogHandler(StreamHandler):
             self.current_msg = computed_message
 
     async def send_request(self, url, payload):
-        async with ClientSession() as session:
-            async with session.request("POST", url, json=payload) as response:
-                e = await response.json()
-                return e
+        async with self.http_session.request("POST", url, json=payload) as response:
+            e = await response.json()
+            return e
 
     async def verify_bot(self):
         res = await self.send_request(f"{self.base_url}/getMe", {})
@@ -152,17 +152,18 @@ class TelegramLogHandler(StreamHandler):
         file.name = "tglogging.logs"
         url = f"{self.base_url}/sendDocument"
         payload = DEFAULT_PAYLOAD.copy()
-        payload["caption"] = "Too much logs to send and hence sending as file."
+        payload["caption"] = "Too many logs for text messages! Hence sending this file."
         files = {"document": file}
         with contextlib.suppress(BaseException):
             del payload["disable_web_page_preview"]
-        async with ClientSession() as session:
-            async with session.request(
-                "POST", url, params=payload, data=files
-            ) as response:
-                res = await response.json()
+        async with self.http_session.request(
+            "POST", url, params=payload, data=files
+        ) as response:
+            res = await response.json()
         if res.get("ok"):
-            print("Logs send as a file since there were too much lines to print.")
+            print(
+                "Sending logs as a file because there's been too much output for text messages."
+            )
         else:
             await self.handle_error(res)
 
