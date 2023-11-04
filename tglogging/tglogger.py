@@ -3,11 +3,7 @@ import contextlib
 import io
 import time
 from logging import StreamHandler
-
-import nest_asyncio
 from aiohttp import ClientSession
-
-nest_asyncio.apply()
 
 DEFAULT_PAYLOAD = {"disable_web_page_preview": True, "parse_mode": "Markdown"}
 
@@ -61,7 +57,7 @@ class TelegramLogHandler(StreamHandler):
         if diff >= max(self.wait_time, self.floodwait) and self.lines >= self.minimum:
             if self.floodwait:
                 self.floodwait = 0
-            self.loop.run_until_complete(self.handle_logs())
+            self.loop.create_task(self.handle_logs())
             self.lines = 0
             self.last_update = time.time()
 
