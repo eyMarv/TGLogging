@@ -33,6 +33,7 @@ class TelegramLogHandler(StreamHandler):
         pending_logs: int = 200000,
     ):
         StreamHandler.__init__(self)
+        self.loop = asyncio.get_event_loop()
         self.token = token
         self.log_chat_id = log_chat_id
         self.wait_time = update_interval
@@ -56,7 +57,7 @@ class TelegramLogHandler(StreamHandler):
         if diff >= max(self.wait_time, self.floodwait) and self.lines >= self.minimum:
             if self.floodwait:
                 self.floodwait = 0
-            asyncio.create_task(self.handle_logs())
+            self.loop.create_task(self.handle_logs())
             self.lines = 0
             self.last_update = time.time()
 
