@@ -38,6 +38,7 @@ class TelegramLogHandler(StreamHandler):
         self.loop = asyncio.get_event_loop()
         self.token = token
         self.log_chat_id = log_chat_id
+        self.title = title
         self.wait_time = update_interval
         self.minimum = minimum_lines
         self.pending = pending_logs
