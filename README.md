@@ -30,7 +30,8 @@ logging.basicConfig(
     handlers=[
         TelegramLogHandler(
             token="12345678:AbCDEFGhiJklmNoPQRTSUVWxyZ", 
-            log_chat_id=-10225533666, 
+            log_chat_id=-10225533666,
+            title="OpDLBot",
             update_interval=2, 
             minimum_lines=1, 
             pending_logs=200000),
@@ -48,6 +49,8 @@ logger.info("live log streaming to telegram.")
 ```token``` : A telegram bot token to interact with telegram API.
 
 ```log_chat_id``` : Chat id of chat to which logs are to be send.
+
+```title``` : a custom title you want to use in log message. Defaults to "TGLogger"
 
 ```update_interval```: Interval between two posting in seconds. Lower intervals will lead to floodwaits. Default to 5 seconds.
 

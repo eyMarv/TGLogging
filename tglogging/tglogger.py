@@ -15,6 +15,7 @@ class TelegramLogHandler(StreamHandler):
     Parameters:
         token: a telegram bot token to interact with telegram API.
         log_chat_id: chat id of chat to which logs are to be send.
+        title: a custom title you want to use in log message. Defaults to "TGLogger"
         update_interval: interval between two posting in seconds.
                             lower intervals will lead to floodwaits.
                             recommended to use greater than 5 sec
@@ -28,6 +29,7 @@ class TelegramLogHandler(StreamHandler):
         self,
         token: str,
         log_chat_id: int,
+        title: str = "TGLogger",
         update_interval: int = 5,
         minimum_lines: int = 1,
         pending_logs: int = 200000,
@@ -125,7 +127,7 @@ class TelegramLogHandler(StreamHandler):
 
     async def send_message(self, message):
         payload = DEFAULT_PAYLOAD.copy()
-        payload["text"] = f"```{message}```"
+        payload["text"] = f"```{self.title}\n{message}```"
         url = f"{self.base_url}/sendMessage"
         res = await self.send_request(url, payload)
         if res.get("ok"):
@@ -137,7 +139,7 @@ class TelegramLogHandler(StreamHandler):
     async def edit_message(self, message):
         payload = DEFAULT_PAYLOAD.copy()
         payload["message_id"] = self.message_id
-        payload["text"] = f"```{message}```"
+        payload["text"] = f"```{self.title}\n{message}```"
         url = f"{self.base_url}/editMessageText"
         res = await self.send_request(url, payload)
         if not res.get("ok"):
