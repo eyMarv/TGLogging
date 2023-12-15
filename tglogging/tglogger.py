@@ -39,6 +39,7 @@ class TelegramLogHandler(StreamHandler):
         self.token = token
         self.log_chat_id = log_chat_id
         self.wait_time = update_interval
+        self.title = title
         self.minimum = minimum_lines
         self.pending = pending_logs
         self.messages = ""
