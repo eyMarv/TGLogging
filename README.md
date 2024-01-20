@@ -9,7 +9,7 @@
 ### Installing
 
 ``` bash
-pip3 install tglogging
+pip3 install git+https://github.com/eyMarv/tglogging.git
 ```
 
 ## Example Usage
