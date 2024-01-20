@@ -31,7 +31,9 @@ logging.basicConfig(
         TelegramLogHandler(
             token="12345678:AbCDEFGhiJklmNoPQRTSUVWxyZ", 
             log_chat_id=-10225533666,
+            forum_msg_id=24,
             title="OpDLBot",
+            ignore_match="error: floodwait",
             update_interval=2, 
             minimum_lines=1, 
             pending_logs=200000),
