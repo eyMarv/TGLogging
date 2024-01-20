@@ -14,14 +14,15 @@ class TelegramLogHandler(StreamHandler):
 
     Parameters:
         token: a telegram bot token to interact with telegram API.
-        log_chat_id: chat id of chat to which logs are to be send.
+        log_chat_id: chat id of chat to which logs are sent.
         title: a custom title you want to use in log message. Defaults to "TGLogger"
+        ignore_match: ignore a log line if it contains the given string. Defaults to None, = log everything
         update_interval: interval between two posting in seconds.
                             lower intervals will lead to floodwaits.
                             recommended to use greater than 5 sec
         minimum_lines: minimum number of new lines required to post / edit a message.
         pending_logs: maximum number of letters for pending logs to send as file.
-                        default to 200000. usefull for apps producing lengthy logs withing few minutes.
+                        default to 200000. useful for apps producing lengthy logs withing few minutes.
 
     """
 
@@ -29,7 +30,9 @@ class TelegramLogHandler(StreamHandler):
         self,
         token: str,
         log_chat_id: int,
+        forum_msg_id: int = 0,
         title: str = "TGLogger",
+        ignore_match: str = "",
         update_interval: int = 5,
         minimum_lines: int = 1,
         pending_logs: int = 200000,
@@ -40,6 +43,7 @@ class TelegramLogHandler(StreamHandler):
         self.log_chat_id = log_chat_id
         self.wait_time = update_interval
         self.title = title
+        self.ignore_match = ignore_match if len(ignore_match) > 0 else None
         self.minimum = minimum_lines
         self.pending = pending_logs
         self.messages = ""
@@ -51,9 +55,14 @@ class TelegramLogHandler(StreamHandler):
         self.base_url = f"https://api.telegram.org/bot{token}"
         self.http_session = ClientSession()
         DEFAULT_PAYLOAD.update({"chat_id": log_chat_id})
+        if forum_msg_id > 0:
+            DEFAULT_PAYLOAD.update({"message_thread_id": forum_msg_id})
 
     def emit(self, record):
         msg = self.format(record)
+        if self.ignore_match is not None:
+            if self.ignore_match in msg:
+                return  # ignored string, so ignore it
         self.lines += 1
         self.messages += f"{msg}\n"
         diff = time.time() - self.last_update
@@ -72,7 +81,7 @@ class TelegramLogHandler(StreamHandler):
                 msg = _msg
             self.current_msg = ""
             self.message_id = 0
-            self.messages = self.messages[len(msg) :]
+            self.messages = self.messages[len(msg):]
             await self.send_as_file(msg)  # sending as document
             return
         _message = self.messages[:4050]  # taking first 4050 characters
@@ -92,8 +101,8 @@ class TelegramLogHandler(StreamHandler):
             _to_edit = computed_message[:4050]
             to_edit = _to_edit.rsplit("\n", 1)[0]
             if not to_edit:
-                to_edit = _to_edit  # incase of lengthy lines
-            to_new = computed_message[len(to_edit) :]
+                to_edit = _to_edit  # in case of lengthy lines
+            to_new = computed_message[len(to_edit):]
             if to_edit != self.current_msg:
                 await self.edit_message(to_edit)
             self.current_msg = to_new
