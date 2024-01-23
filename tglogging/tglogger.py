@@ -3,6 +3,8 @@ import contextlib
 import io
 import time
 from logging import StreamHandler
+from typing import Union, Iterable
+
 from aiohttp import ClientSession
 
 DEFAULT_PAYLOAD = {"disable_web_page_preview": True, "parse_mode": "Markdown"}
@@ -16,7 +18,7 @@ class TelegramLogHandler(StreamHandler):
         token: a telegram bot token to interact with telegram API.
         log_chat_id: chat id of chat to which logs are sent.
         title: a custom title you want to use in log message. Defaults to "TGLogger"
-        ignore_match: ignore a log line if it contains the given string. Defaults to None, = log everything
+        ignore_match: [string/list] ignore a log line if it contains the given string(s). Defaults to None, = log everything
         update_interval: interval between two posting in seconds.
                             lower intervals will lead to floodwaits.
                             recommended to use greater than 5 sec
@@ -32,7 +34,7 @@ class TelegramLogHandler(StreamHandler):
         log_chat_id: int,
         forum_msg_id: int = 0,
         title: str = "TGLogger",
-        ignore_match: str = "",
+        ignore_match: Union[str, Iterable[str]] = "",
         update_interval: int = 5,
         minimum_lines: int = 1,
         pending_logs: int = 200000,
@@ -43,7 +45,14 @@ class TelegramLogHandler(StreamHandler):
         self.log_chat_id = log_chat_id
         self.wait_time = update_interval
         self.title = title
-        self.ignore_match = ignore_match if len(ignore_match) > 0 else None
+        if len(ignore_match) > 0:  # either list or str length
+            self.ignore_match = (
+                list(ignore_match)
+                if (not isinstance(ignore_match, str))
+                else [ignore_match]
+            )
+        else:
+            self.ignore_match = None
         self.minimum = minimum_lines
         self.pending = pending_logs
         self.messages = ""
@@ -61,8 +70,9 @@ class TelegramLogHandler(StreamHandler):
     def emit(self, record):
         msg = self.format(record)
         if self.ignore_match is not None:
-            if self.ignore_match in msg:
-                return  # ignored string, so ignore it
+            for match in self.ignore_match:
+                if match in msg:
+                    return  # ignored string, so ignore it
         self.lines += 1
         self.messages += f"{msg}\n"
         diff = time.time() - self.last_update
