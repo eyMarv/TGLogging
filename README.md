@@ -1,6 +1,6 @@
 # Telegram Logger 
 
-> A simple python package to send your app logs to a telegram chat in realtime.
+> A simple yet powerful python package to send your app logs to a telegram chat in realtime.
 
 <p align="center">
   <img src="images/tglogger.jpg" alt="Sample Image">
@@ -9,7 +9,7 @@
 ### Installing
 
 ``` bash
-pip3 install git+https://github.com/eyMarv/tglogging.git
+pip3 install -U tglogging-black
 ```
 
 ## Example Usage
@@ -32,8 +32,8 @@ logging.basicConfig(
             token="12345678:AbCDEFGhiJklmNoPQRTSUVWxyZ", 
             log_chat_id=-10225533666,
             forum_msg_id=24,
-            title="OpDLBot",
-            ignore_match="error: floodwait",
+            title="@AltCakeBot",
+            ignore_match=["error: floodwait", "scheduler execution delayed"],
             update_interval=2, 
             minimum_lines=1, 
             pending_logs=200000),
@@ -50,16 +50,20 @@ logger.info("live log streaming to telegram.")
 
 ```token``` : A telegram bot token to interact with telegram API.
 
-```log_chat_id``` : Chat id of chat to which logs are to be send.
+```log_chat_id``` : Chat id of chat to which logs are to be sent.
+
+```forum_msg_id``` : [Optional] Forum Topic ID where to send the logs to.
 
 ```title``` : a custom title you want to use in log message. Defaults to "TGLogger"
+
+```ignore_match``` : Specify what lines need to contain, in order to be ignored by TGLogger.
 
 ```update_interval```: Interval between two posting in seconds. Lower intervals will lead to floodwaits. Default to 5 seconds.
 
 ```minimum_lines```: Minimum number of new lines required to post / edit a message.
 
 ```pending_logs```: Maximum number of characters for pending logs to send as file.
-default to 200000. this means if the app is producing a lot of logs within short span of time, if the pending logs exceeds 200000 characters it will be send as a file. change according to your app.
+default to 200000. this means if the app is producing a lot of logs within short span of time, if the pending logs exceeds 200000 characters it will be sent as a file. change according to your app.
 
 
 ## LICENSE

@@ -17,11 +17,12 @@ class TelegramLogHandler(StreamHandler):
     Parameters:
         token: a telegram bot token to interact with telegram API.
         log_chat_id: chat id of chat to which logs are sent.
+        forum_msg_id: [int][optional] Forum Topic ID to send the logs to. Defaults to 0, = log in standard chat
         title: a custom title you want to use in log message. Defaults to "TGLogger"
         ignore_match: [string/list] ignore a log line if it contains the given string(s). Defaults to None, = log everything
         update_interval: interval between two posting in seconds.
                             lower intervals will lead to floodwaits.
-                            recommended to use greater than 5 sec
+                            recommended to use greater than 2 sec
         minimum_lines: minimum number of new lines required to post / edit a message.
         pending_logs: maximum number of letters for pending logs to send as file.
                         default to 200000. useful for apps producing lengthy logs withing few minutes.
@@ -48,7 +49,7 @@ class TelegramLogHandler(StreamHandler):
         if len(ignore_match) > 0:  # either list or str length
             self.ignore_match = (
                 list(ignore_match)
-                if (not isinstance(ignore_match, str))
+                if not isinstance(ignore_match, str)
                 else [ignore_match]
             )
         else:
@@ -91,7 +92,7 @@ class TelegramLogHandler(StreamHandler):
                 msg = _msg
             self.current_msg = ""
             self.message_id = 0
-            self.messages = self.messages[len(msg):]
+            self.messages = self.messages[len(msg) :]
             await self.send_as_file(msg)  # sending as document
             return
         _message = self.messages[:4050]  # taking first 4050 characters
@@ -112,7 +113,7 @@ class TelegramLogHandler(StreamHandler):
             to_edit = _to_edit.rsplit("\n", 1)[0]
             if not to_edit:
                 to_edit = _to_edit  # in case of lengthy lines
-            to_new = computed_message[len(to_edit):]
+            to_new = computed_message[len(to_edit) :]
             if to_edit != self.current_msg:
                 await self.edit_message(to_edit)
             self.current_msg = to_new

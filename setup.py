@@ -4,9 +4,9 @@ with open("README.md", encoding="utf-8") as f:
     readme = f.read()
 
 setuptools.setup(
-    name="tglogging",
-    version="0.1.3",
-    author="subinps + bsxcs",
+    name="tglogging-black",
+    version="0.1.5",
+    author="bsxcs",
     description="A python package to stream your app logs to a telegram chat in realtime.",
     long_description=readme,
     long_description_content_type="text/markdown",
@@ -23,5 +23,5 @@ setuptools.setup(
     ],
     packages=setuptools.find_packages(),
     python_requires=">=3.8",
-    install_requires=["aiohttp"],
+    install_requires=["aiohttp>=3.9.3"],
 )
