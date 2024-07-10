@@ -7,8 +7,6 @@ from typing import Union, Iterable
 
 from aiohttp import ClientSession
 
-DEFAULT_PAYLOAD = {"disable_web_page_preview": True, "parse_mode": "Markdown"}
-
 
 class TelegramLogHandler(StreamHandler):
     """
@@ -42,6 +40,7 @@ class TelegramLogHandler(StreamHandler):
     ):
         StreamHandler.__init__(self)
         self.loop = asyncio.get_event_loop()
+        self.payload = {"disable_web_page_preview": True, "parse_mode": "Markdown"}
         self.token = token
         self.log_chat_id = log_chat_id
         self.wait_time = update_interval
@@ -64,9 +63,9 @@ class TelegramLogHandler(StreamHandler):
         self.last_update = 0
         self.base_url = f"https://api.telegram.org/bot{token}"
         self.http_session = ClientSession()
-        DEFAULT_PAYLOAD.update({"chat_id": log_chat_id})
+        self.payload.update({"chat_id": log_chat_id})
         if forum_msg_id > 0:
-            DEFAULT_PAYLOAD.update({"message_thread_id": forum_msg_id})
+            self.payload.update({"message_thread_id": forum_msg_id})
 
     def emit(self, record):
         msg = self.format(record)
@@ -80,7 +79,7 @@ class TelegramLogHandler(StreamHandler):
         if diff >= max(self.wait_time, self.floodwait) and self.lines >= self.minimum:
             if self.floodwait:
                 self.floodwait = 0
-            self.loop.create_task(self.handle_logs())
+            asyncio.create_task(self.handle_logs())
             self.lines = 0
             self.last_update = time.time()
 
@@ -135,8 +134,8 @@ class TelegramLogHandler(StreamHandler):
             return res.get("result").get("username"), True
 
     async def initialise(self):
-        payload = DEFAULT_PAYLOAD.copy()
-        payload["text"] = "```Initializing```"
+        payload = self.payload.copy()
+        payload["text"] = "```Initializing eyMarv/TGLogging```"
 
         url = f"{self.base_url}/sendMessage"
         res = await self.send_request(url, payload)
@@ -147,7 +146,7 @@ class TelegramLogHandler(StreamHandler):
             await self.handle_error(res)
 
     async def send_message(self, message):
-        payload = DEFAULT_PAYLOAD.copy()
+        payload = self.payload.copy()
         payload["text"] = f"```{self.title}\n{message}```"
         url = f"{self.base_url}/sendMessage"
         res = await self.send_request(url, payload)
@@ -158,7 +157,7 @@ class TelegramLogHandler(StreamHandler):
             await self.handle_error(res)
 
     async def edit_message(self, message):
-        payload = DEFAULT_PAYLOAD.copy()
+        payload = self.payload.copy()
         payload["message_id"] = self.message_id
         payload["text"] = f"```{self.title}\n{message}```"
         url = f"{self.base_url}/editMessageText"
@@ -170,8 +169,10 @@ class TelegramLogHandler(StreamHandler):
         file = io.BytesIO(logs.encode())
         file.name = "tglogging.logs"
         url = f"{self.base_url}/sendDocument"
-        payload = DEFAULT_PAYLOAD.copy()
-        payload["caption"] = "Too many logs for text messages! Hence sending this file."
+        payload = self.payload.copy()
+        payload["caption"] = (
+            "Too many logs for text messages! This file contains the logs."
+        )
         files = {"document": file}
         with contextlib.suppress(BaseException):
             del payload["disable_web_page_preview"]
@@ -181,7 +182,7 @@ class TelegramLogHandler(StreamHandler):
             res = await response.json()
         if res.get("ok"):
             print(
-                "Sending logs as a file because there's been too much output for text messages."
+                "Sending logs as a file, because there's been too much output for text messages."
             )
         else:
             await self.handle_error(res)
