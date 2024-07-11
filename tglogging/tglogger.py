@@ -199,4 +199,6 @@ class TelegramLogHandler(StreamHandler):
             return
         if error.get("retry_after"):
             self.floodwait = error.get("retry_after")
-            print(f'[TGLogging-black] Got a FloodWait of {error.get("retry_after")} seconds, sleeping...')
+            print(
+                f'[TGLogging-black] Got a FloodWait of {error.get("retry_after")} seconds, sleeping...'
+            )
