@@ -16,7 +16,7 @@ class TelegramLogHandler(StreamHandler):
         token: a telegram bot token to interact with telegram API.
         log_chat_id: chat id of chat to which logs are sent.
         forum_msg_id: [int][optional] Forum Topic ID to send the logs to. Defaults to 0, = log in standard chat
-        title: a custom title you want to use in log message. Defaults to "TGLogger"
+        title: a custom title you want to use in log message. Defaults to "TGLogging-black"
         ignore_match: [string/list] ignore a log line if it contains the given string(s). Defaults to None, = log everything
         update_interval: interval between two posting in seconds.
                             lower intervals will lead to floodwaits.
@@ -32,7 +32,7 @@ class TelegramLogHandler(StreamHandler):
         token: str,
         log_chat_id: int,
         forum_msg_id: int = 0,
-        title: str = "TGLogger",
+        title: str = "TGLogging-black",
         ignore_match: Union[str, Iterable[str]] = "",
         update_interval: int = 5,
         minimum_lines: int = 1,
@@ -79,7 +79,7 @@ class TelegramLogHandler(StreamHandler):
         if diff >= max(self.wait_time, self.floodwait) and self.lines >= self.minimum:
             if self.floodwait:
                 self.floodwait = 0
-            asyncio.create_task(self.handle_logs())
+            self.loop.create_task(self.handle_logs())
             self.lines = 0
             self.last_update = time.time()
 
@@ -104,7 +104,7 @@ class TelegramLogHandler(StreamHandler):
         if not self.message_id:
             uname, is_alive = await self.verify_bot()
             if not is_alive:
-                print("TGLogger: [ERROR] - Invalid bot token provided.")
+                print("[TGLogging-black] [ERROR] - Invalid bot token provided.")
             await self.initialise()  # Initializing by sending a message
         computed_message = self.current_msg + msg
         if len(computed_message) > 4050:
@@ -167,7 +167,7 @@ class TelegramLogHandler(StreamHandler):
 
     async def send_as_file(self, logs):
         file = io.BytesIO(logs.encode())
-        file.name = "tglogging.logs"
+        file.name = "tglogging-black.logs"
         url = f"{self.base_url}/sendDocument"
         payload = self.payload.copy()
         payload["caption"] = (
@@ -182,7 +182,7 @@ class TelegramLogHandler(StreamHandler):
             res = await response.json()
         if res.get("ok"):
             print(
-                "Sending logs as a file, because there's been too much output for text messages."
+                "[TGLogging-black] Sending logs as a file, because there's been too much output for text messages."
             )
         else:
             await self.handle_error(res)
@@ -195,8 +195,8 @@ class TelegramLogHandler(StreamHandler):
                 and resp.get("description") == "Unauthorized"
             ):
                 return
-            print(f"Errors while updating TG logs {resp}")
+            print(f"[TGLogging-black] Errors while updating TG logs: {resp}")
             return
         if error.get("retry_after"):
             self.floodwait = error.get("retry_after")
-            print(f'Floodwait of {error.get("retry_after")} and sleeping')
+            print(f'[TGLogging-black] Got a FloodWait of {error.get("retry_after")} seconds, sleeping...')
