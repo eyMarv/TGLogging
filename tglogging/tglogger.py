@@ -62,7 +62,7 @@ class TelegramLogHandler(StreamHandler):
         self.lines = 0
         self.last_update = 0
         self.base_url = f"https://api.telegram.org/bot{token}"
-        self.http_session = ClientSession()
+        self.http_session = ClientSession(loop=self.loop)
         self.payload.update({"chat_id": log_chat_id})
         if forum_msg_id > 0:
             self.payload.update({"message_thread_id": forum_msg_id})
