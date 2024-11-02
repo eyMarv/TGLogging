@@ -5,7 +5,7 @@ with open("README.md", encoding="utf-8") as f:
 
 setuptools.setup(
     name="tglogging-black",
-    version="0.1.7",
+    version="0.1.8",
     author="eyMarv",
     description="A python package to stream your app logs to a telegram chat in realtime.",
     long_description=readme,
